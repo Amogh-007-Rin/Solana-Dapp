@@ -1,296 +1,305 @@
-# Root-Chain Implementation Report
+﻿# Root-Chain Implementation Report (Updated)
 
 ## 1. Project Status Overview
 
-This repository has moved from scaffold-only to a functional multi-service prototype across all core layers:
+This repository has progressed from scaffold-level to a working multi-service prototype with authenticated web operations and database-backed user persistence.
 
-- On-chain program (Anchor): implemented core account model and instructions.
-- AI oracle service (FastAPI): implemented biomass simulation and signature generation.
-- Secondary backend (Node.js): implemented webhook indexing, cache, and websocket broadcast.
-- Web app (Next.js): implemented a clean operator dashboard with wallet actions and on-chain transaction flows.
-- Mobile app (Expo): implemented wallet connect + geolocation capture flow skeleton.
+Current implementation status across layers:
 
-The core vertical slice now exists end-to-end:
+- On-chain program (Anchor): core account/instruction flow implemented.
+- AI oracle service (FastAPI): biomass simulation + signed payload generation implemented.
+- Secondary backend (Node.js): webhook ingestion, cache aggregation, and websocket push implemented.
+- Web app (Next.js): custom landing/login/dashboard flow with Google SSO, protected routes, wallet actions, and admin role tooling implemented.
+- Mobile app (Expo): wallet + geolocation capture scaffold implemented.
 
-1. Register farm account.
-2. Request AI verification.
-3. Build + send mint flow using oracle signature.
-4. Retire credits using on-chain retire instruction.
-5. Emit retire events for indexer ingestion.
+The core product flow now supports:
+
+1. Wallet-driven farm registration.
+2. Oracle-assisted credit claim flow.
+3. Credit retirement flow with event emission.
+4. Google-authenticated dashboard access.
+5. Role-based user administration (admin/operator/auditor) with role audit logs.
 
 ---
 
 ## 2. What Has Been Implemented So Far
 
-## 2.1 Solana Program (sol-program)
+## 2.1 Solana Program (`sol-program`)
 
 Implemented in [sol-program/src/lib.rs](sol-program/src/lib.rs):
 
-- Anchor program module with:
-	- register_farm
-	- mint_carbon_credits
-	- retire_credits
-- FarmAccount state:
-	- owner
-	- area_geojson
-	- last_mint_timestamp
-	- total_carbon_sequestered
-	- amount_carbon
-	- last_update
-	- is_active
-	- bump
-- PDA strategy:
-	- Farm PDA: seeds ["farm", owner]
-	- Mint authority PDA: seeds ["mint-authority"]
-- Oracle signature verification:
-	- Parses Ed25519 instruction from instruction sysvar.
-	- Verifies pubkey, signature, and message payload.
-- Token-2022 mint and burn CPI usage.
-- CarbonRetired event emission.
+- Program instructions:
+  - `register_farm`
+  - `mint_carbon_credits`
+  - `retire_credits`
+- `FarmAccount` state with owner/location/activity/carbon tracking fields.
+- PDA derivation strategy:
+  - Farm PDA: seeds `["farm", owner]`
+  - Mint authority PDA: seeds `["mint-authority"]`
+- Oracle signature verification via Ed25519 instruction parsing from instruction sysvar.
+- Token-2022 mint/burn CPI usage.
+- `CarbonRetired` event emission.
 
 Implemented in [sol-program/Cargo.toml](sol-program/Cargo.toml):
 
-- Anchor dependencies added.
-- crate-type updated for Anchor program output.
+- Anchor dependencies and crate output configuration.
 
 Implemented in [sol-program/Anchor.toml](sol-program/Anchor.toml):
 
-- Devnet provider config.
+- Devnet provider setup.
 
-Important fix completed:
+Important compatibility work completed:
 
-- Oracle message verification now matches AI service payload format (farm PDA based), so claim flow logic is consistent with signed message construction.
+- Oracle message verification path aligned with AI service message construction format.
 
 ---
 
-## 2.2 AI Oracle Service (ai-engine)
+## 2.2 AI Oracle Service (`ai-engine`)
 
 Implemented in [ai-engine/app.py](ai-engine/app.py):
 
-- FastAPI app with CORS enabled.
-- Env-based oracle key loading.
-- Mock NDVI generation by coordinates.
-- Carbon amount calculation.
+- FastAPI app + CORS.
+- Environment-based oracle key loading.
+- Coordinate-based mock NDVI generation.
+- Carbon amount computation.
 - Endpoints:
-	- GET /
-	- POST /calculate
-	- POST /verify-biomass
-- Signature response payload includes:
-	- amount_carbon
-	- slot_number
-	- oracle_pubkey
-	- signature_hex
-	- message_hex
-	- ndvi_previous/current
+  - `GET /`
+  - `POST /calculate`
+  - `POST /verify-biomass`
+- Signed response payload includes:
+  - `amount_carbon`
+  - `slot_number`
+  - `oracle_pubkey`
+  - `signature_hex`
+  - `message_hex`
+  - NDVI inputs/outputs.
 
-Implemented support files:
+Support files:
 
 - [ai-engine/requirements.txt](ai-engine/requirements.txt)
 - [ai-engine/.env.example](ai-engine/.env.example)
 
 ---
 
-## 2.3 Secondary Backend (sb-server)
+## 2.3 Secondary Backend (`sb-server`)
 
 Implemented in [sb-server/src/index.ts](sb-server/src/index.ts):
 
-- Express server setup.
-- Health endpoint: /server/health
-- Metrics endpoint: /metrics/global-offset
-- Helius-style webhook endpoint: /webhooks/solana
-- Event parsing for CarbonRetired and CarbonMinted.
-- In-memory cache:
-	- totalCarbonLocked
-	- totalCarbonRetired
-	- totalEvents
-- JSON event ledger persistence in data/offset-events.json.
+- Express server bootstrap.
+- Health endpoint: `/server/health`
+- Metrics endpoint: `/metrics/global-offset`
+- Webhook endpoint: `/webhooks/solana`
+- Event handling for retired/minted shapes.
+- In-memory aggregate cache:
+  - total locked
+  - total retired
+  - total events
+- JSON persistence ledger in `data/offset-events.json`.
 - Socket.IO broadcast events:
-	- NEW_OFFSET
-	- NEW_MINT
-	- CACHE_SNAPSHOT on connect
+  - `NEW_OFFSET`
+  - `NEW_MINT`
+  - `CACHE_SNAPSHOT` on connect
 
-Implemented support files:
+Support files:
 
 - [sb-server/package.json](sb-server/package.json)
 - [sb-server/.env.example](sb-server/.env.example)
 
 ---
 
-## 2.4 Web App (sol-dapp-web)
+## 2.4 Web App (`sol-dapp-web`)
 
-Implemented architecture and providers:
+### 2.4.1 Wallet + Dashboard Transaction Flows
 
-- Wallet provider integration in [sol-dapp-web/app/providers.tsx](sol-dapp-web/app/providers.tsx)
-- Root integration in [sol-dapp-web/app/layout.tsx](sol-dapp-web/app/layout.tsx)
+Implemented foundation and Solana actions across:
 
-Implemented dashboard UI and flows in [sol-dapp-web/app/page.tsx](sol-dapp-web/app/page.tsx):
-
-- Wallet connect UI.
-- Farm PDA derivation.
-- CO2 mint env awareness.
-- Register Farm action (on-chain instruction).
-- Claim Credits action:
-	- Calls AI endpoint via Next API proxy.
-	- Ensures ATA exists.
-	- Adds Ed25519 verify instruction.
-	- Adds mint_carbon_credits instruction.
-	- Sends transaction through wallet.
-- Retire Credits action:
-	- Adds retire_credits instruction.
-	- Sends transaction through wallet.
-- Service Health panel with API-backed status checks.
-
-Implemented API routes:
-
-- [sol-dapp-web/app/api/health/route.ts](sol-dapp-web/app/api/health/route.ts)
-- [sol-dapp-web/app/api/status/route.ts](sol-dapp-web/app/api/status/route.ts)
-- [sol-dapp-web/app/api/oracle/calculate/route.ts](sol-dapp-web/app/api/oracle/calculate/route.ts)
-- [sol-dapp-web/app/api/actions/retire/route.ts](sol-dapp-web/app/api/actions/retire/route.ts)
-
-Implemented shared program instruction utilities in [sol-dapp-web/lib/program-instructions.ts](sol-dapp-web/lib/program-instructions.ts):
-
-- Anchor discriminator-based instruction serialization.
-- Register, mint, retire instruction builders.
-- PDA derivation helpers.
-- Token-2022 ATA helpers.
-
-Implemented supporting files:
-
+- [sol-dapp-web/app/page.tsx](sol-dapp-web/app/page.tsx)
+- [sol-dapp-web/lib/program-instructions.ts](sol-dapp-web/lib/program-instructions.ts)
 - [sol-dapp-web/lib/oracle.ts](sol-dapp-web/lib/oracle.ts)
-- [sol-dapp-web/app/error.tsx](sol-dapp-web/app/error.tsx)
-- [sol-dapp-web/app/globals.css](sol-dapp-web/app/globals.css)
+
+Capabilities implemented:
+
+- Wallet connect UX and farm PDA derivation.
+- Register farm instruction build/send.
+- Claim credits flow:
+  - oracle API call through app route
+  - ATA creation checks
+  - ed25519 verify instruction insertion
+  - mint instruction send
+- Retire credits flow:
+  - retire instruction send
+- Service health/status integrations.
+
+### 2.4.2 Auth, Access Control, and UX Restructure
+
+Implemented major auth/UI upgrade:
+
+- Custom landing page for unauthenticated entry.
+- Dedicated login page.
+- Post-login dashboard redirection.
+- Protected dashboard access via session checks.
+
+Key files:
+
+- [sol-dapp-web/app/page.tsx](sol-dapp-web/app/page.tsx)
+- [sol-dapp-web/app/login/page.tsx](sol-dapp-web/app/login/page.tsx)
+- [sol-dapp-web/app/dashboard/page.tsx](sol-dapp-web/app/dashboard/page.tsx)
+- [sol-dapp-web/app/dashboard/dashboard-client.tsx](sol-dapp-web/app/dashboard/dashboard-client.tsx)
+
+SSO implementation (Google-only):
+
+- [sol-dapp-web/app/api/auth/[...nextauth]/route.ts](sol-dapp-web/app/api/auth/[...nextauth]/route.ts)
+- [sol-dapp-web/lib/auth.ts](sol-dapp-web/lib/auth.ts)
+- [sol-dapp-web/app/social-login-buttons.tsx](sol-dapp-web/app/social-login-buttons.tsx)
+- [sol-dapp-web/types/next-auth.d.ts](sol-dapp-web/types/next-auth.d.ts)
+
+### 2.4.3 Admin Role Management + Audit Trail
+
+Implemented admin scope with role updates and audit browsing:
+
+- Admin page/UI:
+  - [sol-dapp-web/app/admin/page.tsx](sol-dapp-web/app/admin/page.tsx)
+  - [sol-dapp-web/app/admin/admin-users-client.tsx](sol-dapp-web/app/admin/admin-users-client.tsx)
+- User APIs:
+  - [sol-dapp-web/app/api/users/list/route.ts](sol-dapp-web/app/api/users/list/route.ts)
+  - [sol-dapp-web/app/api/users/me/route.ts](sol-dapp-web/app/api/users/me/route.ts)
+  - [sol-dapp-web/app/api/users/role/route.ts](sol-dapp-web/app/api/users/role/route.ts)
+- Role audit API:
+  - [sol-dapp-web/app/api/audit/roles/route.ts](sol-dapp-web/app/api/audit/roles/route.ts)
+
+---
+
+## 2.5 Prisma Persistence Migration (`sol-dapp-web`)
+
+Persistence was upgraded from JSON-file storage to Prisma-backed database models.
+
+Implemented data layer:
+
+- Prisma schema:
+  - [sol-dapp-web/prisma/schema.prisma](sol-dapp-web/prisma/schema.prisma)
+- Prisma client singleton:
+  - [sol-dapp-web/lib/db.ts](sol-dapp-web/lib/db.ts)
+- User/audit store abstraction migrated:
+  - [sol-dapp-web/lib/user-store.ts](sol-dapp-web/lib/user-store.ts)
+
+Current modeled entities:
+
+- `User`
+- `RoleAudit`
+- `UserRole` enum (`operator`, `admin`, `auditor`)
+
+Environment/docs support updated:
+
 - [sol-dapp-web/.env.example](sol-dapp-web/.env.example)
 
 ---
 
-## 2.5 Mobile App (sol-dapp-app)
+## 2.6 Mobile App (`sol-dapp-app`)
 
 Implemented in [sol-dapp-app/app/(tabs)/index.tsx](sol-dapp-app/app/(tabs)/index.tsx):
 
-- Solana mobile wallet connection using transact.
-- GPS capture using expo-location.
-- Register Farm UI scaffold.
+- Solana mobile wallet connect scaffold.
+- Geolocation capture flow.
+- Register farm UI structure.
 
-Implemented support files:
+Support files:
 
 - [sol-dapp-app/package.json](sol-dapp-app/package.json)
 - [sol-dapp-app/.env.example](sol-dapp-app/.env.example)
 
 ---
 
-## 2.6 Deployment and Documentation
+## 2.7 Documentation and Runbooks
 
-- Deployment script scaffold in [deploy.sh](deploy.sh)
-- Updated planning trackers:
-	- [project-execution.md](project-execution.md)
-	- [project-implementation-checklist.md](project-implementation-checklist.md)
-- Updated project README in [Readme.md](Readme.md)
+Created/updated:
+
+- [what-i-have-done.md](what-i-have-done.md)
+- [running-instructions.md](running-instructions.md)
+- [project-execution.md](project-execution.md)
+- [project-implementation-checklist.md](project-implementation-checklist.md)
+- [Readme.md](Readme.md)
 
 ---
 
 ## 3. Validation Completed
 
-Successful checks completed during implementation:
+The following checks were confirmed in implementation cycles:
 
-1. Web app: npm run build (passes).
-2. SB server: npm install + npm run build (passes).
-3. Mobile app: npm install + npm run lint (passes).
-4. Solana program: cargo check (passes; editor warnings remain for Anchor macro cfg diagnostics but compile is successful).
-
----
-
-## 4. Current Gaps / Remaining Work
-
-1. Token-2022 advanced extensions are not fully implemented yet:
-	 - metadata pointer and full retirement certificate lifecycle are not complete.
-2. IDL generation and strict Anchor client integration are not finalized:
-	 - direct instruction serialization is currently used in web.
-3. Web dashboard does not yet fetch and render decoded FarmAccount state from chain.
-4. SB-server is not yet decoding Anchor events from transaction logs with an IDL-based parser.
-5. Mobile registration currently captures data but does not submit the real on-chain register transaction.
-6. Camera proof-of-land feature is not yet implemented.
-7. Integrated E2E test script for all services is not yet built.
+1. `sol-dapp-web`: `npm run build` passes.
+2. `sb-server`: install/build passes.
+3. `sol-dapp-app`: install/lint passes.
+4. `sol-program`: `cargo check` passes (Anchor macro diagnostics in editor may still appear).
 
 ---
 
-## 5. Sequential Next Steps (Execute In Order)
+## 4. Current Gaps / Active Blockers
 
-## Step 1: Finalize Environment and Runtime Wiring
-
-1. Create .env files from examples for ai-engine, sb-server, sol-dapp-web, sol-dapp-app.
-2. Set required values:
-	 - ORACLE_PRIVATE_KEY
-	 - NEXT_PUBLIC_PROGRAM_ID
-	 - NEXT_PUBLIC_CO2_MINT
-	 - NEXT_PUBLIC_SOLANA_RPC_URL
-	 - NEXT_PUBLIC_AI_ENGINE_URL
-	 - NEXT_PUBLIC_SB_SERVER_URL
-3. Start services and verify health endpoints:
-	 - AI: /
-	 - SB: /server/health
-	 - Web: /api/status
-
-## Step 2: Generate and Lock Program IDL
-
-1. Run anchor build in sol-program.
-2. Export the generated IDL JSON into web and sb-server integration layers.
-3. Replace hardcoded discriminators in web helper with IDL-driven coder logic where possible.
-
-## Step 3: Complete Token-2022 Asset Architecture
-
-1. Initialize production-ready CO2 mint setup with authority rules.
-2. Add metadata pointer and credit metadata model (vintage, location, provenance).
-3. Add robust account existence checks and admin setup scripts.
-
-## Step 4: Complete Web On-Chain Read Layer
-
-1. Add FarmAccount fetch + decode and show live account state.
-2. Add token balance fetch for owner ATA.
-3. Add transaction history and status display panels.
-4. Add toast notifications and error classification (wallet reject, rpc failure, instruction failure).
-
-## Step 5: Upgrade Retire and Certificate Flow
-
-1. Finalize retire event indexing contract side if additional events are needed.
-2. Implement certificate issuance path (soulbound/non-transferable representation) after retirement.
-3. Add certificate display and verification endpoint/UI.
-
-## Step 6: SB-Server Event Decoding Hardening
-
-1. Parse logs using Anchor IDL instead of only webhook payload shape assumptions.
-2. Add durable storage option (SQLite/Postgres) replacing JSON file.
-3. Add reconnect-safe websocket stream for frontend subscribers.
-
-## Step 7: Finish Mobile On-Chain Integration
-
-1. Submit real register_farm transaction from mobile app.
-2. Add claim and retire actions on mobile.
-3. Add camera-based proof upload/hash flow.
-
-## Step 8: Integration Testing and Demo Hardening
-
-1. Create local orchestration scripts for all services.
-2. Add smoke tests:
-	 - register -> claim -> retire -> webhook seen.
-3. Add demo reset scripts for repeatable hackathon runs.
-
-## Step 9: Production Readiness Pass
-
-1. Add secret handling improvements and key rotation strategy.
-2. Add rpc failover, retry, and timeout policies.
-3. Add telemetry/logging standards across all services.
-4. Add final judge-ready walkthrough documentation.
+1. OAuth runtime depends on correct Google Cloud Console setup (authorized origins + callback URI).
+2. Prisma runtime currently blocked in latest state by remote Postgres connectivity (`P1001`) when targeting cloud DB.
+3. Local Postgres bring-up and `DATABASE_URL` pivot are pending finalization.
+4. Farm account decode/read panels in web are still incomplete.
+5. SB server still relies on payload-shape parsing, not full IDL log decoding.
+6. Mobile app does not yet submit full on-chain register/claim/retire flows.
+7. Token-2022 advanced metadata/certificate lifecycle is not finalized.
 
 ---
 
-## 6. Immediate Priority Recommendation
+## 5. Sequential Next Steps (Updated, Immediate-First)
 
-If continuing now, the most important next sequence is:
+## Step 1: Stabilize Local Database Path (Highest Priority)
 
-1. Step 1 (env/runtime wiring),
-2. Step 2 (IDL generation),
-3. Step 4 (web read layer),
-4. Step 6 (event decoding hardening),
-5. Step 7 (mobile on-chain completion).
+1. Start local Postgres via root `docker-compose.yml`.
+2. Point [sol-dapp-web/.env](sol-dapp-web/.env) `DATABASE_URL` to local container.
+3. Run Prisma sync (`generate` + `migrate dev` or `db push`).
+4. Verify sign-in persists user records and role audits without Prisma errors.
 
-This gives you the fastest path to a stable end-to-end demo where every major action is verifiable and visible.
+## Step 2: Finalize Google OAuth Runtime Configuration
+
+1. Ensure Google OAuth app includes:
+   - authorized JavaScript origin (`http://localhost:3000`)
+   - authorized redirect URI (`http://localhost:3000/api/auth/callback/google`)
+2. Re-test login redirect and dashboard session continuity.
+
+## Step 3: Web Read Layer Completion
+
+1. Add on-chain `FarmAccount` read/decode panel.
+2. Add owner ATA/token balance panel.
+3. Add transaction history/state UX for register/claim/retire.
+
+## Step 4: Event Pipeline Hardening
+
+1. Move webhook event parsing to IDL-based decoding where feasible.
+2. Replace JSON event storage with durable DB-backed persistence.
+3. Add reconnect-safe websocket replay strategy.
+
+## Step 5: Mobile On-Chain Completion
+
+1. Send real `register_farm` transaction from mobile.
+2. Add claim and retire actions to mobile UX.
+3. Add camera proof capture/hash path.
+
+## Step 6: Token-2022 and Certificate Lifecycle
+
+1. Finalize metadata pointer strategy.
+2. Implement retirement certificate issuance model.
+3. Add certificate validation/display endpoints and UI.
+
+## Step 7: Integration and Demo Hardening
+
+1. Add local orchestration scripts for all services.
+2. Add smoke test for register -> claim -> retire -> webhook path.
+3. Add deterministic demo reset utilities.
+
+---
+
+## 6. Immediate Execution Recommendation
+
+Run this sequence next for fastest stabilization:
+
+1. Step 1 (local DB bring-up + Prisma sync)
+2. Step 2 (Google OAuth callback verification)
+3. Step 3 (web read layer)
+4. Step 4 (event hardening)
+5. Step 5 (mobile on-chain completion)
+
+This order unblocks auth persistence first, then restores focus to chain observability and demo completeness.
