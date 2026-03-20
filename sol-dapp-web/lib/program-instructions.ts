@@ -1,4 +1,5 @@
 import {
+  Connection,
   PublicKey,
   SystemProgram,
   SYSVAR_INSTRUCTIONS_PUBKEY,
@@ -11,6 +12,74 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountIdempotentInstruction,
 } from "@solana/spl-token";
+
+// ─── Farm Account Types ────────────────────────────────────────────────────
+
+export interface FarmAccountData {
+  owner: PublicKey;
+  areaGeojson: string;
+  lastMintTimestamp: bigint;
+  totalCarbonSequestered: bigint;
+  amountCarbon: bigint;
+  lastUpdate: bigint;
+  isActive: boolean;
+  bump: number;
+}
+
+/**
+ * Fetch and deserialise a FarmAccount from the chain.
+ * Layout (after 8-byte discriminator):
+ *   32  owner Pubkey
+ *    4  geojson string length (u32 LE)
+ *   ??  geojson bytes
+ *    8  last_mint_timestamp (i64 LE)
+ *    8  total_carbon_sequestered (u64 LE)
+ *    8  amount_carbon (u64 LE)
+ *    8  last_update (i64 LE)
+ *    1  is_active (bool)
+ *    1  bump
+ */
+export async function fetchFarmAccount(
+  connection: Connection,
+  farmPda: PublicKey,
+): Promise<FarmAccountData | null> {
+  const info = await connection.getAccountInfo(farmPda, "confirmed");
+  if (!info || info.data.length < 8) return null;
+
+  const raw = info.data;
+  const view = new DataView(raw.buffer, raw.byteOffset, raw.byteLength);
+  let offset = 8; // skip discriminator
+
+  const owner = new PublicKey(raw.slice(offset, offset + 32));
+  offset += 32;
+
+  const geojsonLen = view.getUint32(offset, true);
+  offset += 4;
+
+  const areaGeojson = new TextDecoder().decode(raw.slice(offset, offset + geojsonLen));
+  offset += geojsonLen;
+
+  const lastMintTimestamp = view.getBigInt64(offset, true);
+  offset += 8;
+
+  const totalCarbonSequestered = view.getBigUint64(offset, true);
+  offset += 8;
+
+  const amountCarbon = view.getBigUint64(offset, true);
+  offset += 8;
+
+  const lastUpdate = view.getBigInt64(offset, true);
+  offset += 8;
+
+  const isActive = raw[offset] !== 0;
+  offset += 1;
+
+  const bump = raw[offset];
+
+  return { owner, areaGeojson, lastMintTimestamp, totalCarbonSequestered, amountCarbon, lastUpdate, isActive, bump };
+}
+
+// ─── Instruction Discriminators ───────────────────────────────────────────
 
 const REGISTER_FARM_DISCRIMINATOR = hexToBytes("b734c8baf55bd8f6");
 const MINT_CARBON_DISCRIMINATOR = hexToBytes("a77b75af7933820f");

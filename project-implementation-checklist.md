@@ -14,9 +14,10 @@ Objective: Establish the "On-Chain Source of Truth."
 
         Prompt: "Write a mint_carbon instruction. It must accept amount: u64 and signature: [u8; 64]. Use solana_program::ed25519_program to verify that the signature was signed by a hardcoded ORACLE_PUBKEY before minting SPL tokens to the user."
 
-    [~] Task 1.4: Token-2022 Burn & Metadata
+    [x] Task 1.4: Token-2022 Burn & Metadata
 
         Prompt: "Implement a retire_carbon instruction using Token-2022. When tokens are burned, emit an Anchor Event CarbonRetired containing the owner, amount, and timestamp."
+        Note: retire_credits instruction implemented with Token-2022 CPI burn and CarbonRetired event emission. Retirement certificate NFT (Soulbound) is deferred pending Token-2022 metadata extension setup.
 
 Phase 2: The AI Oracle Backend (ai-engine)
 
@@ -58,9 +59,10 @@ Objective: User Interface & "Blinks" for global access.
 
         Prompt: "Set up Next.js 15 with @solana/wallet-adapter-react. Create a dashboard layout using Tailwind CSS and Shadcn UI 'Card' components."
 
-    [~] Task 4.2: The Minting Flow
+    [x] Task 4.2: The Minting Flow
 
         Prompt: "Build a 'Claim Credits' button. It should: 1. Fetch the signature from the ai-engine. 2. Send an Anchor transaction to sol-program using the signature. 3. Show a toast notification on success."
+        Note: Fully wired. Dashboard now also reads back on-chain FarmAccount state (amount_carbon, total_carbon_sequestered, is_active, last_update) and displays a live Socket.IO carbon feed from the SB server.
 
     [x] Task 4.3: Solana Actions (Blinks)
 
@@ -74,9 +76,10 @@ Objective: "In the Field" farmer tools.
 
         Prompt: "Configure Expo to use @solana-mobile/mobile-wallet-adapter-protocol. Setup a 'Connect Wallet' button that triggers the Phantom mobile app."
 
-    [~] Task 5.2: GPS Registration
+    [x] Task 5.2: GPS Registration + Claim Credits
 
         Prompt: "Use expo-location to get current coordinates. Create a 'Register Farm' screen that sends these coordinates to the sol-program to initialize a new FarmAccount."
+        Note: GPS capture now submits register_farm transaction on-chain via Mobile Wallet Adapter. Added full claim credits flow (AI oracle call + Ed25519 verify + mint instruction) to mobile app.
 
 Phase 6: Production Polish & Deployment
 

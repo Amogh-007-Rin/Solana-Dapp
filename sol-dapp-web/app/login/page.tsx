@@ -19,7 +19,7 @@ export default async function LoginPage() {
         <article className="rounded-2xl border border-slate-700 bg-slate-900/70 p-8">
           <h1 className="text-3xl font-bold">Sign in to Root-Chain</h1>
           <p className="mt-2 text-sm text-slate-300">
-            Continue with Google, Facebook, or Twitter to access your dashboard.
+            Continue with Google to access your dashboard.
           </p>
           <div className="mt-6">
             <SocialLoginButtons />
