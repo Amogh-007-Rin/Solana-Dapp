@@ -244,33 +244,36 @@ export function DashboardClient({ email, name, role }: DashboardClientProps) {
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 p-6 text-slate-100">
+    <main className="rc-bg rc-grid min-h-screen p-6 text-slate-100">
       <section className="mx-auto grid w-full max-w-6xl gap-6">
-        <div className="rounded-2xl border border-emerald-500/20 bg-linear-to-r from-slate-900 to-slate-800 p-6 shadow-2xl">
+        <div className="rc-glass rc-neo rounded-3xl p-7">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Root-Chain Dashboard</h1>
-              <p className="mt-2 text-sm text-slate-300">
+              <p className="rc-chip inline-flex rounded-full px-4 py-2 text-[11px] font-extrabold tracking-widest text-emerald-100">
+                OPERATOR PANEL
+              </p>
+              <h1 className="mt-4 text-3xl font-black tracking-tight">Root-Chain Dashboard</h1>
+              <p className="mt-2 text-sm text-slate-200">
                 Signed in as {name} ({email})
               </p>
-              <p className="mt-1 text-xs uppercase tracking-wide text-emerald-300">Role: {role}</p>
+              <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-emerald-200">Role: {role}</p>
             </div>
             <button
               type="button"
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="rounded-lg border border-rose-400/60 px-4 py-2 text-sm font-semibold text-rose-200 transition hover:bg-rose-500/10"
+              className="rc-btn rounded-xl bg-rose-500 px-4 py-2 text-sm font-extrabold text-slate-950 transition hover:bg-rose-400"
             >
               Sign out
             </button>
           </div>
-          <p className="mt-3 text-sm text-slate-300">
+          <p className="mt-4 text-sm text-slate-200">
             OAuth-protected command dashboard for wallet auth, AI verification, and retirement actions.
           </p>
-          <div className="mt-4 flex flex-wrap gap-3">
+          <div className="mt-5 flex flex-wrap gap-4">
             <WalletMultiButton />
             <Link
               href="/admin"
-              className="rounded-lg border border-indigo-400/60 px-4 py-2 text-sm font-medium text-indigo-200 transition hover:bg-indigo-500/10"
+              className="rc-btn rounded-xl bg-indigo-400 px-4 py-2 text-sm font-extrabold text-slate-950 transition hover:bg-indigo-300"
             >
               Open Admin
             </Link>
@@ -278,7 +281,7 @@ export function DashboardClient({ email, name, role }: DashboardClientProps) {
               type="button"
               onClick={refreshStatus}
               disabled={statusLoading}
-              className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-700 disabled:opacity-60"
+              className="rc-btn rounded-xl bg-slate-950/30 px-4 py-2 text-sm font-bold text-slate-100 transition hover:bg-slate-950/50 disabled:opacity-60"
             >
               {statusLoading ? "Checking..." : "Refresh Services"}
             </button>
@@ -286,8 +289,8 @@ export function DashboardClient({ email, name, role }: DashboardClientProps) {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-3">
-          <article className="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-sm">
-            <h2 className="text-lg font-semibold">Wallet and Farm</h2>
+          <article className="rc-glass rc-neo-soft rounded-3xl p-6">
+            <h2 className="text-lg font-extrabold tracking-tight">Wallet and Farm</h2>
             <dl className="mt-4 space-y-3 text-sm">
               <div>
                 <dt className="font-medium text-slate-300">Wallet</dt>
@@ -308,45 +311,45 @@ export function DashboardClient({ email, name, role }: DashboardClientProps) {
               value={areaGeojson}
               onChange={(event) => setAreaGeojson(event.target.value)}
               rows={4}
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs"
+              className="rc-input mt-2 w-full rounded-2xl px-3 py-2 text-xs text-slate-100 outline-none ring-0"
             />
 
             <button
               type="button"
               onClick={onRegisterFarm}
               disabled={registerLoading}
-              className="mt-3 inline-flex items-center rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-70"
+              className="rc-btn mt-4 inline-flex items-center rounded-xl bg-amber-400 px-4 py-2 text-sm font-extrabold text-slate-950 transition hover:bg-amber-300 disabled:opacity-70"
             >
               {registerLoading ? "Registering..." : "Register Farm"}
             </button>
           </article>
 
-          <article className="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-sm">
-            <h2 className="text-lg font-semibold">Claim Credits</h2>
-            <p className="mt-1 text-sm text-slate-400">Runs live AI verification and returns signed payload.</p>
+          <article className="rc-glass rc-neo-soft rounded-3xl p-6">
+            <h2 className="text-lg font-extrabold tracking-tight">Claim Credits</h2>
+            <p className="mt-1 text-sm text-slate-200">Runs live AI verification and returns a signed payload.</p>
 
             <button
               type="button"
               onClick={onClaimCredits}
               disabled={claimLoading}
-              className="mt-4 inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
+              className="rc-btn mt-4 inline-flex items-center rounded-xl bg-emerald-400 px-4 py-2 text-sm font-extrabold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {claimLoading ? "Processing..." : "Run AI Claim"}
             </button>
 
             {oracleData && (
-              <div className="mt-4 rounded-lg bg-slate-800 p-3 text-xs text-slate-300">
-                <p>Amount: {oracleData.amount_carbon}</p>
-                <p>NDVI previous: {oracleData.ndvi_previous}</p>
-                <p>NDVI current: {oracleData.ndvi_current}</p>
-                <p className="break-all">Oracle sig: {oracleData.signature_hex}</p>
+              <div className="rc-glass mt-5 rounded-2xl px-4 py-3 text-xs text-slate-200">
+                <p className="font-semibold">Amount: {oracleData.amount_carbon}</p>
+                <p className="mt-1 text-slate-300">NDVI previous: {oracleData.ndvi_previous}</p>
+                <p className="text-slate-300">NDVI current: {oracleData.ndvi_current}</p>
+                <p className="mt-2 break-all text-slate-300">Oracle sig: {oracleData.signature_hex}</p>
               </div>
             )}
           </article>
 
-          <article className="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-sm">
-            <h2 className="text-lg font-semibold">Retire Credits</h2>
-            <p className="mt-1 text-sm text-slate-400">Builds transaction via API and sends with your wallet.</p>
+          <article className="rc-glass rc-neo-soft rounded-3xl p-6">
+            <h2 className="text-lg font-extrabold tracking-tight">Retire Credits</h2>
+            <p className="mt-1 text-sm text-slate-200">Builds transaction and sends it with your wallet.</p>
 
             <label className="mt-4 block text-xs text-slate-400">Amount</label>
             <input
@@ -354,38 +357,38 @@ export function DashboardClient({ email, name, role }: DashboardClientProps) {
               min={1}
               value={retireAmount}
               onChange={(event) => setRetireAmount(Math.max(1, Number(event.target.value || 1)))}
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm"
+              className="rc-input mt-2 w-full rounded-2xl px-3 py-2 text-sm text-slate-100 outline-none ring-0"
             />
 
             <button
               type="button"
               onClick={onRetireCredits}
               disabled={retireLoading}
-              className="mt-4 inline-flex items-center rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
+              className="rc-btn mt-4 inline-flex items-center rounded-xl bg-cyan-300 px-4 py-2 text-sm font-extrabold text-slate-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {retireLoading ? "Submitting..." : "Retire Credits"}
             </button>
 
-            {signature && <p className="mt-3 break-all text-xs text-cyan-300">Tx: {signature}</p>}
+            {signature && <p className="mt-4 break-all text-xs font-semibold text-cyan-200">Tx: {signature}</p>}
           </article>
         </div>
 
-        <article className="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-sm">
-          <h2 className="text-lg font-semibold">Service Health</h2>
-          <p className="mt-1 text-sm text-slate-400">Check if Web API, AI engine, and SB server are reachable.</p>
+        <article className="rc-glass rc-neo-soft rounded-3xl p-6">
+          <h2 className="text-lg font-extrabold tracking-tight">Service Health</h2>
+          <p className="mt-1 text-sm text-slate-200">Check if Web API, AI engine, and SB server are reachable.</p>
           <div className="mt-3 grid gap-2 sm:grid-cols-3">
             {services.length === 0 && <p className="text-sm text-slate-400">Press Refresh Services to load status.</p>}
             {services.map((service) => (
-              <div key={service.name} className="rounded-lg border border-slate-700 bg-slate-800 p-3">
-                <p className="text-sm font-medium">{service.name}</p>
-                <p className={`text-xs ${service.ok ? "text-emerald-300" : "text-rose-300"}`}>
+              <div key={service.name} className="rc-glass rounded-2xl p-4">
+                <p className="text-sm font-bold">{service.name}</p>
+                <p className={`mt-1 text-xs font-semibold ${service.ok ? "text-emerald-200" : "text-rose-200"}`}>
                   {service.ok ? "Online" : "Offline"}
                 </p>
                 <p className="mt-1 break-all text-xs text-slate-400">{service.detail}</p>
               </div>
             ))}
           </div>
-          <p className="mt-4 text-sm text-slate-300">{status}</p>
+          <p className="mt-5 text-sm font-semibold text-slate-200">{status}</p>
         </article>
       </section>
     </main>

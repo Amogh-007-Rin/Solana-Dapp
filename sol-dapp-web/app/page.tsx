@@ -11,44 +11,58 @@ export default async function Home() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#0b1020] text-white">
-      <div className="pointer-events-none absolute -left-20 top-10 h-72 w-72 rounded-full bg-[#f97316]/20 blur-3xl" />
-      <div className="pointer-events-none absolute right-0 top-24 h-80 w-80 rounded-full bg-[#0ea5e9]/20 blur-3xl" />
+    <main className="rc-bg rc-grid relative min-h-screen overflow-hidden text-slate-100">
       <section className="mx-auto grid min-h-screen max-w-6xl grid-cols-1 gap-10 px-6 py-16 lg:grid-cols-2 lg:items-center">
         <article className="space-y-6">
-          <p className="inline-flex rounded-full border border-cyan-300/40 bg-cyan-300/10 px-3 py-1 text-xs tracking-wider text-cyan-100">
+          <p className="rc-chip inline-flex rounded-full px-4 py-2 text-xs font-semibold tracking-widest text-cyan-100">
             ROOT-CHAIN PROTOCOL
           </p>
-          <h1 className="text-4xl font-bold leading-tight md:text-6xl">
+          <h1 className="text-4xl font-black leading-tight md:text-6xl">
             Carbon Markets,
             <br />
             Verified On Chain.
           </h1>
-          <p className="max-w-xl text-base text-slate-300 md:text-lg">
+          <p className="max-w-xl text-base text-slate-200 md:text-lg">
             Register farmland, verify sequestration with AI signatures, mint Token-2022 credits, and retire assets with
             auditable proof on Solana.
           </p>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-4">
             <Link
               href="/login"
-              className="rounded-lg bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-400"
+              className="rc-btn inline-flex items-center justify-center rounded-xl bg-orange-400 px-6 py-3 text-sm font-extrabold text-slate-950 transition hover:bg-orange-300"
             >
-              Start With SSO
+              Open Dashboard Login
             </Link>
             <Link
               href="/api/status"
-              className="rounded-lg border border-slate-500/70 px-5 py-3 text-sm font-semibold text-slate-100 transition hover:border-slate-300"
+              className="rc-btn inline-flex items-center justify-center rounded-xl bg-slate-950/30 px-6 py-3 text-sm font-bold text-slate-100 transition hover:bg-slate-950/50"
             >
-              Check API Status
+              Check System Status
             </Link>
+          </div>
+          <div className="rc-glass rounded-2xl px-5 py-4">
+            <p className="text-xs font-semibold tracking-widest text-slate-200">ARCHITECTURE</p>
+            <p className="mt-1 text-sm text-slate-200">
+              Web command center → AI oracle → Anchor program → Token-2022 credits → burn + events → indexer.
+            </p>
           </div>
         </article>
 
-        <article className="rounded-2xl border border-slate-600/40 bg-slate-900/60 p-6 backdrop-blur-sm">
-          <h2 className="text-2xl font-semibold">Sign In</h2>
-          <p className="mt-2 text-sm text-slate-300">Use one social account to unlock your custom command dashboard.</p>
+        <article className="rc-glass rc-neo-soft rounded-3xl p-7">
+          <h2 className="text-2xl font-extrabold tracking-tight">Sign In</h2>
+          <p className="mt-2 text-sm text-slate-200">Use any available provider to unlock the command center.</p>
           <div className="mt-6">
             <SocialLoginButtons />
+          </div>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <div className="rc-glass rounded-2xl px-4 py-3">
+              <p className="text-xs font-semibold text-slate-200">AI Engine</p>
+              <p className="mt-1 text-xs text-slate-300">Calculates biomass + signs mint payload.</p>
+            </div>
+            <div className="rc-glass rounded-2xl px-4 py-3">
+              <p className="text-xs font-semibold text-slate-200">SB Server</p>
+              <p className="mt-1 text-xs text-slate-300">Indexes events + broadcasts live metrics.</p>
+            </div>
           </div>
         </article>
       </section>
