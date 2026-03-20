@@ -1,0 +1,14 @@
+{
+  "users": [
+    {
+      "id": "usr_hjdt8e5v1v",
+      "email": "local@root-chain.dev",
+      "name": "Local Operator",
+      "provider": "credentials",
+      "role": "operator",
+      "createdAt": "2026-03-20T10:10:24.162Z",
+      "updatedAt": "2026-03-20T10:10:24.162Z",
+      "lastLoginAt": "2026-03-20T10:10:24.162Z"
+    }
+  ]
+}
