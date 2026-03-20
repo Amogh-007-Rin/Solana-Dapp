@@ -12,11 +12,12 @@
         
 **Additional Tech-stack Refinement**
 
-Component,Choice,Rationale
-Solana Program,Anchor 0.30+,"The industry standard for Rust-based Solana development, ensuring type-safe and secure smart contracts."
-Token Logic,Token-2022 (Extensions),"Utilizes Transfer Hooks for ""Automatic Retirement"" and Metadata Pointers for immutable on-chain proof."
-State Management,ZK Compression,Powered by Light Protocol. Drastically reduces costs for minting millions of micro-credits for small-scale farms.
-AI Integration,FastAPI + Pyth Relay,Python-based biomass modeling with an Oracle-style push to the Solana program for automated credit valuation.
-Web Frontend,Next.js 15 + Shadcn,"High-performance, Server Components-ready UI using Tailwind CSS for a professional enterprise aesthetic."
-Mobile App,Expo + SMS,"Enables ""on-the-farm"" registration and secure transaction signing via Phantom/Solflare using the Solana Mobile Stack."
-Auxiliary Backend,Node.js + Helius,"Uses Helius Webhooks to ""listen"" for on-chain burn events, triggering real-time UI updates via WebSockets."
+| Component | Choice | Rationale |
+|---|---|---|
+| Solana Program | Anchor 0.30+ | The industry standard for Rust-based Solana development, ensuring type-safe and secure smart contracts. |
+| Token Logic | Token-2022 (Extensions) | Utilizes Transfer Hooks for "Automatic Retirement" and Metadata Pointers for immutable on-chain proof. |
+| State Management | ZK Compression | Powered by Light Protocol. Drastically reduces costs for minting millions of micro-credits for small-scale farms. |
+| AI Integration | FastAPI + Pyth Relay | Python-based biomass modeling with an Oracle-style push to the Solana program for automated credit valuation. |
+| Web Frontend | Next.js 15 + Shadcn | High-performance, Server Components-ready UI using Tailwind CSS for a professional enterprise aesthetic. |
+| Mobile App | Expo + SMS | Enables "on-the-farm" registration and secure transaction signing via Phantom/Solflare using the Solana Mobile Stack. |
+| Auxiliary Backend | Node.js + Helius | Uses Helius Webhooks to "listen" for on-chain burn events, triggering real-time UI updates via WebSockets. |

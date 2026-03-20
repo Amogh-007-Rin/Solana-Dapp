@@ -1,0 +1,9 @@
+[programs.devnet]
+sol_program = "8qJjY3qeJc9cTGw3GRW7xVfN32B2j3YkM3p6N5cm6QkM"
+
+[provider]
+cluster = "Devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "anchor test"

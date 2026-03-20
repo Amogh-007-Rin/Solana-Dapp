@@ -1,98 +1,129 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import * as Location from 'expo-location';
+import { transact } from '@solana-mobile/mobile-wallet-adapter-protocol-web3js';
 
-import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
 
 export default function HomeScreen() {
+  const [walletAddress, setWalletAddress] = useState<string>('Not connected');
+  const [coords, setCoords] = useState<string>('Not captured');
+  const [loading, setLoading] = useState(false);
+
+  const connectWallet = async () => {
+    setLoading(true);
+    try {
+      const authResult = await transact(async (wallet) => {
+        return wallet.authorize({
+          chain: 'solana:devnet',
+          identity: {
+            name: 'Root-Chain',
+            uri: 'https://root-chain.local',
+            icon: 'favicon.ico',
+          },
+        });
+      });
+
+      const address = authResult.accounts[0]?.address;
+      setWalletAddress(address ?? 'Unknown');
+    } catch (error) {
+      Alert.alert('Wallet connection failed', `${error}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const registerFarm = async () => {
+    setLoading(true);
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (permission.status !== 'granted') {
+        Alert.alert('Permission required', 'Location access is required to register farm.');
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      const value = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
+      setCoords(value);
+
+      // Placeholder for on-chain registration transaction.
+      Alert.alert('Farm registered', `Captured coordinates: ${value}`);
+    } catch (error) {
+      Alert.alert('Registration failed', `${error}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
+      headerBackgroundColor={{ light: '#d1fae5', dark: '#064e3b' }}>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
+        <ThemedText type="title">Field App</ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
+        <ThemedText type="subtitle">1. Connect Wallet</ThemedText>
+        <ThemedText>Use Solana Mobile Stack to connect Phantom or Solflare.</ThemedText>
+        <Pressable onPress={connectWallet} disabled={loading} style={styles.primaryButton}>
+          <ThemedText style={styles.buttonText}>{loading ? 'Processing...' : 'Connect Wallet'}</ThemedText>
+        </Pressable>
+        <ThemedText>Wallet: {walletAddress}</ThemedText>
+      </ThemedView>
+
+      <ThemedView style={styles.stepContainer}>
+        <ThemedText type="subtitle">2. Register Farm</ThemedText>
+        <ThemedText>Capture your live GPS coordinates to initialize your farm account.</ThemedText>
+        <Pressable onPress={registerFarm} disabled={loading} style={styles.secondaryButton}>
+          <ThemedText style={styles.buttonText}>{loading ? 'Processing...' : 'Register Farm'}</ThemedText>
+        </Pressable>
+        <ThemedText>Coordinates: {coords}</ThemedText>
+      </ThemedView>
+
+      <ThemedView style={styles.stepContainer}>
+        <ThemedText type="subtitle">3. Optional Proof of Land</ThemedText>
         <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
+          Camera capture and metadata hashing can be added to upload proof artifacts next.
         </ThemedText>
       </ThemedView>
+
+      <View style={styles.bottomSpacer} />
     </ParallaxScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    gap: 4,
   },
   stepContainer: {
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 18,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(16, 185, 129, 0.08)',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  primaryButton: {
+    backgroundColor: '#047857',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignSelf: 'flex-start',
+  },
+  secondaryButton: {
+    backgroundColor: '#0f766e',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignSelf: 'flex-start',
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: '700',
+  },
+  bottomSpacer: {
+    height: 20,
   },
 });
