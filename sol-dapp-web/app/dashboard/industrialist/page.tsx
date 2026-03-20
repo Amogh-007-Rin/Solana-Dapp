@@ -2,8 +2,9 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { getUserByEmail } from "@/lib/user-store";
+import { IndustrialistDashboardClient } from "./industrialist-dashboard-client";
 
-export default async function DashboardPage() {
+export default async function IndustrialistDashboardPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
     redirect("/login");
@@ -18,9 +19,9 @@ export default async function DashboardPage() {
     redirect("/onboarding");
   }
 
-  if (appUser.participantType === "farmer") {
-    redirect("/dashboard/farmer");
+  if (appUser.participantType !== "industrialist") {
+    redirect("/dashboard");
   }
 
-  redirect("/dashboard/industrialist");
+  return <IndustrialistDashboardClient user={appUser} />;
 }

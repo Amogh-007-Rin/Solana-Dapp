@@ -40,12 +40,14 @@ export const authOptions: NextAuthOptions = {
       if (token.email) {
         const appUser = await getUserByEmail(token.email);
         token.role = appUser?.role ?? "operator";
+        token.participantType = appUser?.participantType ?? "industrialist";
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.role = token.role;
+        session.user.participantType = token.participantType;
       }
       return session;
     },

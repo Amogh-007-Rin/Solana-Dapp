@@ -9,10 +9,10 @@ export async function GET() {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const user = await getUserByEmail(session.user.email);
-  if (!user) {
+  const appUser = await getUserByEmail(session.user.email);
+  if (!appUser) {
     return NextResponse.json({ message: "User profile not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ user });
+  return NextResponse.json({ user: appUser });
 }

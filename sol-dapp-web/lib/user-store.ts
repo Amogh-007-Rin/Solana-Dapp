@@ -2,6 +2,7 @@
 // Data resets on server restart; fine for hackathon demo.
 
 export type UserRole = "operator" | "admin" | "auditor";
+export type ParticipantType = "farmer" | "industrialist";
 
 export interface RoleAuditLog {
   id: string;
@@ -19,6 +20,7 @@ export interface AppUser {
   image?: string;
   provider?: string;
   role: UserRole;
+  participantType: ParticipantType;
   createdAt: string;
   updatedAt: string;
   lastLoginAt?: string;
@@ -59,6 +61,7 @@ export async function upsertUserFromOAuth(input: {
       image: input.image ?? existing.image,
       provider: input.provider ?? existing.provider,
       role: shouldBeAdmin ? "admin" : existing.role,
+      participantType: existing.participantType ?? "industrialist",
       updatedAt: now,
       lastLoginAt: now,
     };
@@ -73,6 +76,7 @@ export async function upsertUserFromOAuth(input: {
     image: input.image,
     provider: input.provider,
     role: shouldBeAdmin ? "admin" : "operator",
+    participantType: "industrialist",
     createdAt: now,
     updatedAt: now,
     lastLoginAt: now,
@@ -90,6 +94,23 @@ export async function updateUserRole(email: string, role: UserRole): Promise<App
   if (!existing) return null;
 
   const updated: AppUser = { ...existing, role, updatedAt: new Date().toISOString() };
+  users.set(email.toLowerCase(), updated);
+  return updated;
+}
+
+export async function updateUserParticipantType(
+  email: string,
+  participantType: ParticipantType,
+): Promise<AppUser | null> {
+  const existing = users.get(email.toLowerCase());
+  if (!existing) return null;
+
+  const updated: AppUser = {
+    ...existing,
+    participantType,
+    updatedAt: new Date().toISOString(),
+  };
+
   users.set(email.toLowerCase(), updated);
   return updated;
 }
