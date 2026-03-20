@@ -15,10 +15,10 @@ const LABELS: Record<string, string> = {
 };
 
 const BUTTON_STYLES: Record<string, string> = {
-  credentials: "bg-emerald-500 text-white hover:bg-emerald-400",
-  google: "bg-white text-slate-900 hover:bg-slate-200",
+  credentials: "bg-emerald-400 text-slate-950 hover:bg-emerald-300",
+  google: "bg-white text-slate-950 hover:bg-slate-100",
   facebook: "bg-[#1877f2] text-white hover:bg-[#1666d9]",
-  twitter: "bg-black text-white hover:bg-slate-800",
+  twitter: "bg-black text-white hover:bg-slate-900",
 };
 
 export function SocialLoginButtons() {
@@ -58,7 +58,7 @@ export function SocialLoginButtons() {
               await signIn(provider.id, { callbackUrl: "/dashboard" });
             }}
             disabled={loadingProvider !== null}
-            className={`w-full rounded-lg px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${BUTTON_STYLES[id]}`}
+            className={`rc-btn w-full rounded-xl px-4 py-3 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-60 ${BUTTON_STYLES[id]}`}
           >
             {loadingProvider === id ? "Redirecting..." : LABELS[id] ?? `Continue with ${provider.name}`}
           </button>
