@@ -5,15 +5,17 @@ import { useEffect, useState } from "react";
 
 type ProviderRecord = Record<LiteralUnion<string, string>, ClientSafeProvider>;
 
-const PREFERRED_ORDER = ["google", "facebook", "twitter"];
+const PREFERRED_ORDER = ["credentials", "google", "facebook", "twitter"];
 
 const LABELS: Record<string, string> = {
+  credentials: "Continue as Local Operator",
   google: "Continue with Google",
   facebook: "Continue with Facebook",
   twitter: "Continue with Twitter",
 };
 
 const BUTTON_STYLES: Record<string, string> = {
+  credentials: "bg-emerald-500 text-white hover:bg-emerald-400",
   google: "bg-white text-slate-900 hover:bg-slate-200",
   facebook: "bg-[#1877f2] text-white hover:bg-[#1666d9]",
   twitter: "bg-black text-white hover:bg-slate-800",
@@ -38,7 +40,7 @@ export function SocialLoginButtons() {
   if (items.length === 0) {
     return (
       <p className="rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
-        No OAuth providers are configured. Add provider credentials in environment variables.
+        No login providers are configured. Add OAuth credentials in env, or enable local dev auth.
       </p>
     );
   }

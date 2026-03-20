@@ -2,6 +2,7 @@ import type { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import FacebookProvider from "next-auth/providers/facebook";
 import TwitterProvider from "next-auth/providers/twitter";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { getUserByEmail, upsertUserFromOAuth } from "@/lib/user-store";
 
 const providers = [];
@@ -34,8 +35,29 @@ if (process.env.TWITTER_CLIENT_ID && process.env.TWITTER_CLIENT_SECRET) {
   );
 }
 
+const devAuthEnabled = process.env.NODE_ENV !== "production" && process.env.DISABLE_DEV_AUTH !== "1";
+
+if (devAuthEnabled && providers.length === 0) {
+  providers.push(
+    CredentialsProvider({
+      name: "Local Dev",
+      credentials: {},
+      async authorize() {
+        return {
+          id: "local-dev",
+          name: "Local Operator",
+          email: "local@root-chain.dev",
+        };
+      },
+    }),
+  );
+}
+
 export const authOptions: NextAuthOptions = {
   providers,
+  secret:
+    process.env.NEXTAUTH_SECRET ??
+    (process.env.NODE_ENV !== "production" ? "root-chain-dev-secret" : undefined),
   pages: {
     signIn: "/login",
   },
