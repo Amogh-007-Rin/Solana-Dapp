@@ -16,7 +16,7 @@ const providers: NextAuthOptions["providers"] = [];
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   providers.push(
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientId:     process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
   );
@@ -38,17 +38,62 @@ providers.push(
   }),
 );
 
+// Detect if we're running behind the Replit HTTPS proxy so we can set
+// SameSite=None;Secure on the OAuth state/pkce cookies.  Without this,
+// Google redirects back and the browser refuses to send the state cookie
+// (it was set on the first-party frame but the redirect is treated as
+// cross-site), producing the "State cookie was missing" error.
+const useSecureCookies = process.env.NEXTAUTH_URL?.startsWith("https://") ?? false;
+const cookiePrefix    = useSecureCookies ? "__Secure-" : "";
+const secureCookieOptions = {
+  httpOnly: true,
+  sameSite: "none" as const,
+  path:     "/",
+  secure:   true,
+};
+
 export const authOptions: NextAuthOptions = {
   providers,
-  pages: { signIn: "/login" },
+  pages:   { signIn: "/login" },
   session: { strategy: "jwt" },
+
+  // Fix for proxied / iframe environments (Replit dev domain)
+  cookies: useSecureCookies
+    ? {
+        sessionToken: {
+          name:    `${cookiePrefix}next-auth.session-token`,
+          options: { httpOnly: true, sameSite: "none", path: "/", secure: true },
+        },
+        callbackUrl: {
+          name:    `${cookiePrefix}next-auth.callback-url`,
+          options: { httpOnly: true, sameSite: "none", path: "/", secure: true },
+        },
+        csrfToken: {
+          name:    `next-auth.csrf-token`,
+          options: { httpOnly: true, sameSite: "none", path: "/", secure: true },
+        },
+        pkceCodeVerifier: {
+          name:    `${cookiePrefix}next-auth.pkce.code_verifier`,
+          options: secureCookieOptions,
+        },
+        state: {
+          name:    `${cookiePrefix}next-auth.state`,
+          options: secureCookieOptions,
+        },
+        nonce: {
+          name:    `${cookiePrefix}next-auth.nonce`,
+          options: secureCookieOptions,
+        },
+      }
+    : undefined,
+
   callbacks: {
     async signIn({ user, account }) {
       if (!user.email) return false;
 
       await upsertUserFromOAuth({
         email:    user.email,
-        name:     user.name ?? undefined,
+        name:     user.name  ?? undefined,
         image:    user.image ?? undefined,
         provider: account?.provider ?? "credentials",
       });
