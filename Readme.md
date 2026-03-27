@@ -105,4 +105,6 @@ At repo root:
 ./deploy.sh <PROGRAM_ID>
 ```
 
-The script builds and deploys the Anchor program on Devnet and updates Program ID references in app env files.
+The script builds and deploys the Anchor program on Devnet and updates Program ID references in app env files.                  
+
+## Testing on devnet: Instructions 
